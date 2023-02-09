@@ -4,4 +4,4 @@ version = 1
 name = "go"
 
   [analyzers.meta]
-  import_root = "github.com/dnepr0/stregy"
+  import_root = "github.com/ZadneprovskiyNikolay/stregy"
