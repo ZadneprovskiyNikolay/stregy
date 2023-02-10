@@ -24,12 +24,12 @@ type Service interface {
 }
 
 type service struct {
-	repository        Repository
-	tickService       tick.Service
-	quoteService      quote.Service
-	exgAccService     exgaccount.Service
-	symbolService     symbol.Service
-	accHistoryService btcore.AccountHistoryReport
+	repository             Repository
+	tickService            tick.Service
+	quoteService           quote.Service
+	exgAccService          exgaccount.Service
+	symbolService          symbol.Service
+	AccountHistoryReporter AccountHistoryReporter
 }
 
 func NewService(
@@ -38,15 +38,15 @@ func NewService(
 	quoteService quote.Service,
 	exgAccService exgaccount.Service,
 	symbolService symbol.Service,
-	accHistoryService btcore.AccountHistoryReport,
+	accHistoryReporter AccountHistoryReporter,
 ) Service {
 	return &service{
-		repository:        repository,
-		tickService:       tickService,
-		quoteService:      quoteService,
-		exgAccService:     exgAccService,
-		symbolService:     symbolService,
-		accHistoryService: accHistoryService,
+		repository:             repository,
+		tickService:            tickService,
+		quoteService:           quoteService,
+		exgAccService:          exgAccService,
+		symbolService:          symbolService,
+		AccountHistoryReporter: accHistoryReporter,
 	}
 }
 
@@ -121,7 +121,6 @@ func (s *service) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	backtest.AccountHistoryService = s.accHistoryService
 	backtest.Symbol = *s.getSymbol(backtest.Symbol.Name)
 
 	var strat strategy1.Strategy = strategy.NewStrategy(backtest)
@@ -130,7 +129,7 @@ func (s *service) Run() (err error) {
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
 	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime, backtest.TimeframeSec)
 	backtest.BacktestOnQuotes(strat, quotes, firstQuote)
-	backtest.CreateReport(reportLocation)
+	s.createReport(backtest, reportLocation)
 
 	return err
 }
@@ -155,4 +154,23 @@ func parseArgs() (backtestID string, reportLocation string, err error) {
 	}
 
 	return backtestID, reportLocation, nil
+}
+
+func (s *service) createReport(backtest *btcore.Backtest, location string) {
+	if location == "" {
+		location = s.getDefaultReportLocation()
+	}
+	reportPath := path.Join(location, backtest.ID+".csv")
+	os.Mkdir(reportPath, os.ModePerm)
+
+	err := s.AccountHistoryReporter.CreateReport(backtest.OrderHistory, backtest.Symbol, reportPath)
+	if err != nil {
+		logging.GetLogger().Error(fmt.Sprintf("Error creating backtest report: %v", err))
+	}
+}
+
+func (s *service) getDefaultReportLocation() string {
+	wd, _ := os.Getwd()
+	reportDir := path.Join(wd, "reports")
+	return reportDir
 }

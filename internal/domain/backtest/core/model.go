@@ -19,14 +19,14 @@ const (
 )
 
 type Backtest struct {
-	ID                    string
-	StrategyName          string
-	StartTime             time.Time
-	EndTime               time.Time
-	Symbol                symbol.Symbol
-	TimeframeSec          int
-	Status                StrategyExecutionStatus
-	AccountHistoryService AccountHistoryReport
+	ID           string
+	StrategyName string
+	StartTime    time.Time
+	EndTime      time.Time
+	Symbol       symbol.Symbol
+	TimeframeSec int
+	Status       StrategyExecutionStatus
+	OrderHistory []*order.Order
 
 	logger broker.Logger
 
@@ -42,7 +42,6 @@ type Backtest struct {
 	positions     map[int64]*order.Position
 	orderCount    int64
 	positionCount int64
-	orderHistory  []*order.Order
 }
 
 var _ broker.Broker = (*Backtest)(nil)

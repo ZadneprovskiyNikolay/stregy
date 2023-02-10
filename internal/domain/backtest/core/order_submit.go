@@ -53,7 +53,7 @@ func (b *Backtest) submitOrder(o *order.Order) {
 	o.SubmissionTime = b.curTime
 
 	b.orders[o.ID] = o
-	b.orderHistory = append(b.orderHistory, o)
+	b.OrderHistory = append(b.OrderHistory, o)
 
 	b.logger.LogOrderStatusChange(o)
 }

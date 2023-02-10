@@ -1,13 +1,10 @@
 package core
 
 import (
-	"fmt"
-	"path"
 	"stregy/internal/domain/broker"
 	"stregy/internal/domain/order"
 	"stregy/internal/domain/quote"
 	strategy1 "stregy/internal/domain/strategy"
-	"stregy/pkg/logging"
 	"time"
 )
 
@@ -31,20 +28,6 @@ func (b *Backtest) BacktestOnQuotes(s strategy1.Strategy, quotes <-chan quote.Qu
 	b.runOnQuotes(quotes, quoteGen)
 
 	return nil
-}
-
-func (b *Backtest) CreateReport(location string) {
-	reportPath := ""
-	if location == "" {
-		reportPath = b.getDefaultReportPath()
-	} else {
-		reportPath = path.Join(location, b.ID+".csv")
-	}
-
-	err := b.AccountHistoryService.CreateReport(b.orderHistory, b.Symbol, reportPath)
-	if err != nil {
-		logging.GetLogger().Error(fmt.Sprintf("Error creating backtest report: %v", err))
-	}
 }
 
 func (b *Backtest) init(s strategy1.Strategy) {
