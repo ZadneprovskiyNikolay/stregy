@@ -61,7 +61,7 @@ func (b *Backtest) initLogger() {
 	b.logger = *broker.NewLogger(b.ID+".log", loggerCfg, b)
 }
 
-func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *quoteGenerator) {
+func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerator) {
 	run := true
 	for run {
 		select {

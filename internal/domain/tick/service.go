@@ -35,7 +35,7 @@ func tickGenerator(ch chan<- Tick, s *service, symbol string, start, end time.Ti
 		batchEnd = end
 	}
 
-	for true {
+	for {
 		ticks, err := s.repository.GetByInterval(symbol, batchStart, batchEnd)
 		if err != nil {
 			panic(err)

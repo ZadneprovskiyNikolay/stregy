@@ -14,8 +14,7 @@ type Config struct {
 		BindIP string `yaml:"bind_ip" env-default:"127.0.0.1"`
 		Port   string `yaml:"port" env-default:"8080"`
 	} `yaml:"listen"`
-	PosgreSQL            PosgreSQLConfig `yaml:"postgresql"`
-	StratexecProjectPath string          `yaml:"stratexec_project_path" env-required:"true"`
+	PosgreSQL PosgreSQLConfig `yaml:"postgresql"`
 }
 
 type PosgreSQLConfig struct {

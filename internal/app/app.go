@@ -62,7 +62,7 @@ func Run(cfg *config.Config) {
 		logger.Fatal("tick composite failed")
 	}
 
-	strategyComposite, err := composites.NewStrategyComposite(pgormComposite, userComposite.Service)
+	strategyComposite, err := composites.NewStrategyComposite(userComposite.Service)
 	if err != nil {
 		logger.Fatal("strategy composite failed")
 	}
@@ -84,9 +84,8 @@ func Run(cfg *config.Config) {
 
 	backtestComposite, err := composites.NewBacktestComposite(
 		pgormComposite, exgAccountComposite.Service,
-		strategyComposite.Service, userComposite.Service,
-		tickComposite.Service, quoteComposite.Service,
-		symbolComposite.Service)
+		userComposite.Service, tickComposite.Service,
+		quoteComposite.Service, symbolComposite.Service)
 	if err != nil {
 		logger.Fatal("backtest composite failed")
 	}

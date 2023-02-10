@@ -8,7 +8,6 @@ import (
 	"stregy/internal/domain/backtest"
 	"stregy/internal/domain/exgaccount"
 	"stregy/internal/domain/quote"
-	"stregy/internal/domain/strategy"
 	"stregy/internal/domain/symbol"
 	"stregy/internal/domain/tick"
 	"stregy/internal/domain/user"
@@ -22,7 +21,6 @@ type BacktestComposite struct {
 func NewBacktestComposite(
 	pgormComposite *PGormComposite,
 	exgAccService exgaccount.Service,
-	strategyService strategy.Service,
 	userService user.Service,
 	tickService tick.Service,
 	quoteService quote.Service,

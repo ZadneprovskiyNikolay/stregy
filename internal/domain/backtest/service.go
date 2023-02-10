@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"stregy/internal/domain/backtest/core"
 	btcore "stregy/internal/domain/backtest/core"
 	"stregy/internal/domain/exgaccount"
 	"stregy/internal/domain/quote"
@@ -30,9 +29,7 @@ type service struct {
 	quoteService      quote.Service
 	exgAccService     exgaccount.Service
 	symbolService     symbol.Service
-	accHistoryService core.AccountHistoryReport
-
-	stratexecProjectPath string
+	accHistoryService btcore.AccountHistoryReport
 }
 
 func NewService(
@@ -41,7 +38,7 @@ func NewService(
 	quoteService quote.Service,
 	exgAccService exgaccount.Service,
 	symbolService symbol.Service,
-	accHistoryService core.AccountHistoryReport,
+	accHistoryService btcore.AccountHistoryReport,
 ) Service {
 	return &service{
 		repository:        repository,
@@ -60,7 +57,7 @@ func (s *service) Create(dto BacktestDTO) (*btcore.Backtest, error) {
 		EndTime:      dto.EndDate,
 		Symbol:       symbol.Symbol{Name: dto.SymbolName},
 		TimeframeSec: dto.TimeframeSec,
-		Status:       core.Created,
+		Status:       btcore.Created,
 	}
 	return s.repository.Create(bt)
 }
@@ -140,7 +137,7 @@ func (s *service) Run() (err error) {
 
 func (s *service) getSymbol(name string) *symbol.Symbol {
 	smbl, _ := s.symbolService.GetByName(name)
-	if s == nil {
+	if smbl == nil {
 		smbl = &symbol.Symbol{Name: name, Precision: 6}
 	}
 

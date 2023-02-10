@@ -1,6 +1,7 @@
 package stratexec
 
 import (
+	"stregy/internal/domain/backtest"
 	btcore "stregy/internal/domain/backtest/core"
 
 	"github.com/google/uuid"
@@ -11,7 +12,7 @@ type repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(client *gorm.DB) *repository {
+func NewRepository(client *gorm.DB) backtest.Repository {
 	return &repository{db: client}
 }
 

@@ -4,8 +4,8 @@ import (
 	"stregy/internal/domain/order"
 )
 
-func (b *Backtest) GetBalance(stratexecID string) (float64, error) {
-	return b.balance, nil
+func (b *Backtest) GetBalance() float64 {
+	return b.balance
 }
 
 func (b *Backtest) updateBalance(o *order.Order) {

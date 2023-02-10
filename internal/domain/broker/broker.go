@@ -10,7 +10,7 @@ type Broker interface {
 	AddCtgOrder(posID int64, o order.Order) (*order.Order, error)
 	ChangeOrderPrice(id int64, price float64) error
 	CancelOrder(id int64) error
-	GetBalance(stratexecID string) (float64, error)
+	GetBalance() float64
 
 	Time() time.Time
 	Price() float64

@@ -55,7 +55,7 @@ func (h *handler) CreateStrategy(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	dto.Implementation = &(r.PostForm["file"][0])
-	if len(*dto.Implementation) == 0 {
+	if *dto.Implementation == "" {
 		logger.Error(err.Error())
 		handlers.ReturnError(w, http.StatusBadRequest, "implementation is empty")
 	}

@@ -18,7 +18,7 @@ type quoteFeed struct {
 	timeframeDuration time.Duration
 }
 
-type quoteGenerator struct {
+type QuoteGenerator struct {
 	feeds          []*quoteFeed
 	callbackObject callbackObject
 }
@@ -28,7 +28,7 @@ type callbackObject interface {
 	QuoteTimeframesNeeded() []int
 }
 
-func NewQuoteGenerator(cb callbackObject, primaryTimeframeSec int, firstQuote quote.Quote) (*quoteGenerator, error) {
+func NewQuoteGenerator(cb callbackObject, primaryTimeframeSec int, firstQuote quote.Quote) (*QuoteGenerator, error) {
 	primaryTimeframe := int(math.Ceil(float64(primaryTimeframeSec) / 60))
 	timeframes := cb.QuoteTimeframesNeeded()
 
@@ -55,7 +55,7 @@ func NewQuoteGenerator(cb callbackObject, primaryTimeframeSec int, firstQuote qu
 		})
 	}
 
-	qg := quoteGenerator{
+	qg := QuoteGenerator{
 		feeds:          feeds,
 		callbackObject: cb,
 	}
@@ -63,7 +63,7 @@ func NewQuoteGenerator(cb callbackObject, primaryTimeframeSec int, firstQuote qu
 	return &qg, nil
 }
 
-func (qg *quoteGenerator) OnQuote(q quote.Quote) {
+func (qg *QuoteGenerator) OnQuote(q quote.Quote) {
 	for _, feed := range qg.feeds {
 		newQuote := feed.feed(q)
 		if newQuote != nil {

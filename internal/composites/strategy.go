@@ -14,7 +14,7 @@ type StrategyComposite struct {
 	Handler     api.Handler
 }
 
-func NewStrategyComposite(composite *PGormComposite, userService user.Service) (*StrategyComposite, error) {
+func NewStrategyComposite(userService user.Service) (*StrategyComposite, error) {
 	storage := strategy3.NewStorage()
 	service := strategy.NewService(storage)
 	handler := strategy1.NewHandler(service, userService)

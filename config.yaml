@@ -10,4 +10,3 @@ postgresql:
   database: postgres
   username: postgres
   password: nikded41
-stratexec_project_path: C:/Kolia/repos/stregy_stratexec/stregy
