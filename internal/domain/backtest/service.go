@@ -65,7 +65,7 @@ func (s *service) Create(dto BacktestDTO) (*btcore.Backtest, error) {
 	return s.repository.Create(bt)
 }
 
-func (s *service) Launch(backtest *btcore.Backtest) (err error) {
+func (*service) Launch(backtest *btcore.Backtest) (err error) {
 	// check strategy exists
 	wd, _ := os.Getwd()
 	strategyFilePath := path.Join(wd, "local", "strategies", backtest.StrategyName, "strategy.go")

@@ -14,28 +14,28 @@ func NewStrategy() *Strategy {
 	return &Strategy{}
 }
 
-func (s *Strategy) Name() string {
+func (*Strategy) Name() string {
 	return "defaultstrat"
 }
 
-func (s *Strategy) OnOrder(o order.Order) {
+func (*Strategy) OnOrder(o order.Order) {
 }
 
-func (s *Strategy) OnQuote(q quote.Quote, timeframe int) {
+func (*Strategy) OnQuote(q quote.Quote, timeframe int) {
 }
 
-func (s *Strategy) OnTick(price float64) {
+func (*Strategy) OnTick(price float64) {
 }
 
-func (s *Strategy) PrimaryTimeframeSec() int {
+func (*Strategy) PrimaryTimeframeSec() int {
 	return 60
 }
 
-func (s *Strategy) QuoteTimeframesNeeded() []int {
+func (*Strategy) QuoteTimeframesNeeded() []int {
 	return []int{}
 }
 
-func (s *Strategy) TimeBeforeCallbacks() time.Duration {
+func (*Strategy) TimeBeforeCallbacks() time.Duration {
 	return time.Minute * 5 * 14
 }
 
