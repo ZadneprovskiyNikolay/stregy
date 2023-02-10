@@ -14,7 +14,7 @@ func NewStorage() strategy.Storage {
 	return storage{}
 }
 
-func (s storage) SaveStrategy(name string, implementation *string) (string, error) {
+func (storage) SaveStrategy(name string, implementation *string) (string, error) {
 	wd, _ := os.Getwd()
 	dir := path.Join(wd, "local", "strategies", name)
 	os.MkdirAll(dir, os.ModePerm)

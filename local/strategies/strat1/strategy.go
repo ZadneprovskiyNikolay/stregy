@@ -35,19 +35,19 @@ func NewStrategy(broker broker.Broker) strategy.Strategy {
 	return &strat
 }
 
-func (s *strat1) Name() string {
+func (*strat1) Name() string {
 	return "strat1"
 }
 
-func (s *strat1) PrimaryTimeframeSec() int {
+func (*strat1) PrimaryTimeframeSec() int {
 	return 1
 }
 
-func (s *strat1) QuoteTimeframesNeeded() []int {
+func (*strat1) QuoteTimeframesNeeded() []int {
 	return []int{5}
 }
 
-func (s *strat1) TimeBeforeCallbacks() time.Duration {
+func (*strat1) TimeBeforeCallbacks() time.Duration {
 	return time.Minute * 0
 }
 
