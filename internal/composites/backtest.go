@@ -1,7 +1,6 @@
 package composites
 
 import (
-	acchistory "stregy/internal/adapters/acchistory/general"
 	"stregy/internal/adapters/api"
 	btapi "stregy/internal/adapters/api/bt"
 	"stregy/internal/adapters/pgorm/stratexec"
@@ -32,8 +31,7 @@ func NewBacktestComposite(
 		tickService,
 		quoteService,
 		exgAccService,
-		symbolService,
-		acchistory.NewAccountHistoryReporter())
+		symbolService)
 	handler := btapi.NewHandler(service, userService)
 	return &BacktestComposite{
 		Service: service,

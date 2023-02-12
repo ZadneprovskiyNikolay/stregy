@@ -9,16 +9,20 @@ import (
 )
 
 func (b *Backtest) Time() time.Time {
-	return b.curTime
+	return b.time
 }
 func (b *Backtest) Price() float64 {
-	return b.lastPrice
+	return b.price
 }
 
-func (b *Backtest) BacktestOnQuotes(s strategy1.Strategy, quotes <-chan quote.Quote, firstQuote quote.Quote) error {
-	b.init(s)
-	b.curTime = firstQuote.Time
-	b.lastPrice = firstQuote.Open
+func (b *Backtest) BacktestOnQuotes(
+	s strategy1.Strategy,
+	quotes <-chan quote.Quote,
+	firstQuote quote.Quote,
+	balance float64,
+) error {
+	b.init(s, firstQuote, balance)
+
 	quoteGen, err := NewQuoteGenerator(s, b.TimeframeSec, firstQuote)
 	if err != nil {
 		return err
@@ -30,13 +34,18 @@ func (b *Backtest) BacktestOnQuotes(s strategy1.Strategy, quotes <-chan quote.Qu
 	return nil
 }
 
-func (b *Backtest) init(s strategy1.Strategy) {
+func (b *Backtest) init(s strategy1.Strategy, q quote.Quote, balance float64) {
+	b.time = q.Time
+	b.price = q.Open
+
 	b.initLogger()
 
 	b.strategy = s
 	b.orders = make(map[int64]*order.Order)
 	b.positions = make(map[int64]*order.Position)
 	b.termChan = make(chan bool)
+	b.Balance.Update(balance, b.time)
+	b.Drawdown.Init(b.time, time.Minute*5, b)
 }
 
 func (b *Backtest) initLogger() {
@@ -54,8 +63,10 @@ func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerat
 				break
 			}
 
-			b.curTime = q.Time
-			b.lastPrice = q.Close
+			b.time = q.Time
+			b.price = q.Close
+
+			b.Drawdown.Update(b.time)
 
 			b.strategy.OnTick(q.Close)
 
@@ -63,12 +74,12 @@ func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerat
 				if o.Type == order.Limit {
 					if o.Diraction == order.Long {
 						if q.Low <= o.Price {
-							b.executeOrder(o, b.lastPrice)
+							b.executeOrder(o, b.price)
 							continue
 						}
 					} else {
 						if q.High >= o.Price {
-							b.executeOrder(o, b.lastPrice)
+							b.executeOrder(o, b.price)
 							continue
 						}
 					}

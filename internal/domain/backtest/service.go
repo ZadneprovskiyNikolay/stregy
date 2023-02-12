@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
+	"stregy/internal/domain/acchistory"
 	btcore "stregy/internal/domain/backtest/core"
 	"stregy/internal/domain/exgaccount"
 	"stregy/internal/domain/quote"
@@ -24,12 +26,11 @@ type Service interface {
 }
 
 type service struct {
-	repository             Repository
-	tickService            tick.Service
-	quoteService           quote.Service
-	exgAccService          exgaccount.Service
-	symbolService          symbol.Service
-	AccountHistoryReporter AccountHistoryReporter
+	repository    Repository
+	tickService   tick.Service
+	quoteService  quote.Service
+	exgAccService exgaccount.Service
+	symbolService symbol.Service
 }
 
 func NewService(
@@ -38,15 +39,13 @@ func NewService(
 	quoteService quote.Service,
 	exgAccService exgaccount.Service,
 	symbolService symbol.Service,
-	accHistoryReporter AccountHistoryReporter,
 ) Service {
 	return &service{
-		repository:             repository,
-		tickService:            tickService,
-		quoteService:           quoteService,
-		exgAccService:          exgAccService,
-		symbolService:          symbolService,
-		AccountHistoryReporter: accHistoryReporter,
+		repository:    repository,
+		tickService:   tickService,
+		quoteService:  quoteService,
+		exgAccService: exgAccService,
+		symbolService: symbolService,
 	}
 }
 
@@ -112,7 +111,7 @@ func (s *service) Run() (err error) {
 		}
 	}()
 
-	backtestID, reportLocation, err := parseArgs()
+	backtestID, balance, reportLocation, err := parseArgs()
 	if err != nil {
 		return err
 	}
@@ -128,7 +127,7 @@ func (s *service) Run() (err error) {
 	// backtest
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
 	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime, backtest.TimeframeSec)
-	backtest.BacktestOnQuotes(strat, quotes, firstQuote)
+	backtest.BacktestOnQuotes(strat, quotes, firstQuote, balance)
 	s.createReport(backtest, reportLocation)
 
 	return err
@@ -143,34 +142,53 @@ func (s *service) getSymbol(name string) *symbol.Symbol {
 	return smbl
 }
 
-func parseArgs() (backtestID string, reportLocation string, err error) {
+func parseArgs() (backtestID string, balance float64, reportLocation string, err error) {
 	if len(os.Args) < 2 {
-		return "", "", errors.New("backtest id not provided")
+		return "", 0, "", errors.New("backtest id not provided")
 	}
 	backtestID = os.Args[2]
 
 	if len(os.Args) >= 3 {
-		reportLocation = os.Args[3]
+		balance, _ = strconv.ParseFloat(os.Args[3], 64)
+		if err != nil {
+			return "", 0, "", fmt.Errorf("error parsing balance: %s", err.Error())
+		}
 	}
 
-	return backtestID, reportLocation, nil
+	if len(os.Args) >= 4 {
+		reportLocation = os.Args[4]
+	}
+
+	return backtestID, balance, reportLocation, nil
 }
 
 func (s *service) createReport(backtest *btcore.Backtest, location string) {
-	if location == "" {
-		location = s.getDefaultReportLocation()
-	}
-	reportPath := path.Join(location, backtest.ID+".csv")
-	os.Mkdir(reportPath, os.ModePerm)
+	logger := logging.GetLogger()
 
-	err := s.AccountHistoryReporter.CreateReport(backtest.OrderHistory, backtest.Symbol, reportPath)
+	if location == "" {
+		location = s.getDefaultReportLocation(backtest.ID)
+	}
+	os.Mkdir(location, os.ModePerm)
+
+	ordersPath := path.Join(location, "orders.csv")
+	err := acchistory.SaveOrderHistory(backtest.OrderHistory, backtest.Symbol, ordersPath)
 	if err != nil {
-		logging.GetLogger().Error(fmt.Sprintf("Error creating backtest report: %v", err))
+		logger.Error(fmt.Sprintf("Error during saving order history: %v", err))
+	}
+
+	balancePath := path.Join(location, "balance.csv")
+	if err := backtest.Balance.Save(balancePath); err != nil {
+		logger.Error(fmt.Sprintf("Error during saving balance history: %v", err))
+	}
+
+	drawdownPath := path.Join(location, "max_drawdown.csv")
+	if err := backtest.Drawdown.Save(drawdownPath); err != nil {
+		logger.Error(fmt.Sprintf("Error during saving max drawdown history: %v", err))
 	}
 }
 
-func (s *service) getDefaultReportLocation() string {
+func (s *service) getDefaultReportLocation(backtestID string) string {
 	wd, _ := os.Getwd()
-	reportDir := path.Join(wd, "reports")
+	reportDir := path.Join(wd, "reports", backtestID)
 	return reportDir
 }

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"stregy/internal/domain/acchistory"
 	"stregy/internal/domain/broker"
 	"stregy/internal/domain/order"
 	"stregy/internal/domain/strategy"
@@ -26,22 +27,24 @@ type Backtest struct {
 	Symbol       symbol.Symbol
 	TimeframeSec int
 	Status       StrategyExecutionStatus
-	OrderHistory []*order.Order
-
-	logger broker.Logger
 
 	strategy strategy.Strategy
-	balance  float64
 
-	curTime   time.Time
-	lastPrice float64
+	time  time.Time
+	price float64
 
-	termChan chan bool
+	OrderHistory []*order.Order
+	Balance      acchistory.Balance
+	Drawdown     acchistory.Drawdown
 
 	orders        map[int64]*order.Order
 	positions     map[int64]*order.Position
 	orderCount    int64
 	positionCount int64
+
+	termChan chan bool
+
+	logger broker.Logger
 }
 
 var _ broker.Broker = (*Backtest)(nil)

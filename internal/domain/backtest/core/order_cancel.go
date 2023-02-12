@@ -13,7 +13,7 @@ func (b *Backtest) CancelOrder(id int64) error {
 	delete(b.orders, id)
 
 	o.Status = order.CancelledOrder
-	o.FCTime = b.curTime
+	o.FCTime = b.time
 	if o.ID != o.Position.MainOrder.ID {
 		o.Position.RemoveCgtOrder(id)
 	}

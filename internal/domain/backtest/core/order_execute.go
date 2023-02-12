@@ -16,7 +16,7 @@ func (b *Backtest) executeOrder(o *order.Order, price float64) {
 
 	o.Status = order.FilledOrder
 	o.ExecutionPrice = price
-	o.FCTime = b.curTime
+	o.FCTime = b.time
 	delete(b.orders, o.ID)
 
 	b.logger.LogOrderStatusChange(o)
@@ -27,6 +27,8 @@ func (b *Backtest) executeOrder(o *order.Order, price float64) {
 	} else if o.Position.Size == 0 {
 		b.cancelContingentOrders(o)
 	}
+
+	b.updateBalance(o)
 }
 
 func (b *Backtest) activateContingentOrders(o *order.Order) {

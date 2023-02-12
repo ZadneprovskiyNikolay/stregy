@@ -50,7 +50,7 @@ func (b *Backtest) AddCtgOrder(posID int64, o order.Order) (*order.Order, error)
 
 func (b *Backtest) submitOrder(o *order.Order) {
 	o.Status = order.SubmittedOrder
-	o.SubmissionTime = b.curTime
+	o.SubmissionTime = b.time
 
 	b.orders[o.ID] = o
 	b.OrderHistory = append(b.OrderHistory, o)

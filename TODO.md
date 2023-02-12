@@ -1,6 +1,7 @@
 ## today
-create new name for order and position module, change pgorm adapter as well?
-fork -> deepsource
+bt
+    set strategy execution status
+plot balance and drawdown
 
 ## future
 posmerge
