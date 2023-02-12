@@ -15,6 +15,7 @@ import (
 	"stregy/internal/domain/symbol"
 	"stregy/internal/domain/tick"
 	strategy "stregy/local/strategies/strat1"
+	"stregy/pkg/draw"
 	"stregy/pkg/logging"
 	"stregy/pkg/utils"
 )
@@ -58,10 +59,10 @@ func (s *service) Create(dto BacktestDTO) (*btcore.Backtest, error) {
 		TimeframeSec: dto.TimeframeSec,
 		Status:       btcore.Created,
 	}
-	return s.repository.Create(bt)
+	return s.repository.Create(&bt)
 }
 
-func (*service) Launch(backtest *btcore.Backtest) (err error) {
+func (s *service) Launch(backtest *btcore.Backtest) (err error) {
 	// check strategy exists
 	wd, _ := os.Getwd()
 	strategyFilePath := path.Join(wd, "local", "strategies", backtest.StrategyName, "strategy.go")
@@ -121,6 +122,8 @@ func (s *service) Run() (err error) {
 		return err
 	}
 	backtest.Symbol = *s.getSymbol(backtest.Symbol.Name)
+	backtest.Status = btcore.Running
+	s.repository.Save(backtest)
 
 	var strat strategy1.Strategy = strategy.NewStrategy(backtest)
 
@@ -128,6 +131,10 @@ func (s *service) Run() (err error) {
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
 	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime, backtest.TimeframeSec)
 	backtest.BacktestOnQuotes(strat, quotes, firstQuote, balance)
+
+	// update status
+	s.repository.Save(backtest)
+
 	s.createReport(backtest, reportLocation)
 
 	return err
@@ -181,10 +188,14 @@ func (s *service) createReport(backtest *btcore.Backtest, location string) {
 		logger.Error(fmt.Sprintf("Error during saving balance history: %v", err))
 	}
 
-	drawdownPath := path.Join(location, "max_drawdown.csv")
+	drawdownPath := path.Join(location, "drawdown.csv")
 	if err := backtest.Drawdown.Save(drawdownPath); err != nil {
 		logger.Error(fmt.Sprintf("Error during saving max drawdown history: %v", err))
 	}
+
+	balanceChart := draw.FromTimeSeries("balance", backtest.Balance.TimeSeries)
+	drawdownChart := draw.FromTimeSeries("drawdown", backtest.Drawdown.TimeSeries)
+	draw.DrawLineCharts("history", balanceChart, drawdownChart)
 }
 
 func (s *service) getDefaultReportLocation(backtestID string) string {

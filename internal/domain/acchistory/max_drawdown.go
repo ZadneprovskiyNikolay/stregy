@@ -1,13 +1,17 @@
 package acchistory
 
-import "time"
+import (
+	"stregy/pkg/timeseries"
+	"time"
+)
 
 type Drawdown struct {
-	TimeSeries       TimeSeries
-	MaxEquity        float64
-	CalcFreq         time.Duration
-	NextCalcTime     time.Time
-	EquityCalculator EquityCalculator
+	TimeSeries timeseries.TimeSeries
+	CalcFreq   time.Duration
+
+	maxEquity        float64
+	nextCalcTime     time.Time
+	equityCalculator EquityCalculator
 }
 
 type EquityCalculator interface {
@@ -15,27 +19,27 @@ type EquityCalculator interface {
 }
 
 func (m *Drawdown) Init(t time.Time, calcFreq time.Duration, equityCalculator EquityCalculator) {
-	m.EquityCalculator = equityCalculator
+	m.equityCalculator = equityCalculator
 
 	if calcFreq == time.Second*0 {
-		m.NextCalcTime = time.Unix(1<<63-62135596801, 999999999) // max time
+		m.nextCalcTime = time.Unix(1<<63-62135596801, 999999999) // max time
 	} else {
-		m.NextCalcTime = t
+		m.nextCalcTime = t
 	}
 }
 
 func (m *Drawdown) Update(t time.Time) {
-	if t.Before(m.NextCalcTime) {
+	if t.Before(m.nextCalcTime) {
 		return
 	}
 
-	equity := m.EquityCalculator.GetEquity()
-	if equity > m.MaxEquity {
-		m.MaxEquity = equity
+	equity := m.equityCalculator.GetEquity()
+	if equity > m.maxEquity {
+		m.maxEquity = equity
 	}
 
-	m.TimeSeries = append(m.TimeSeries, TSValue{t, (m.MaxEquity - equity) / m.MaxEquity * 100})
-	m.NextCalcTime = m.NextCalcTime.Add(m.CalcFreq)
+	m.TimeSeries = append(m.TimeSeries, timeseries.Value{t, (m.maxEquity - equity) / m.maxEquity * 100})
+	m.nextCalcTime = m.nextCalcTime.Add(m.CalcFreq)
 }
 
 func (m *Drawdown) Save(path string) error {

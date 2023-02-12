@@ -1,7 +1,5 @@
 ## today
-bt
-    set strategy execution status
-plot balance and drawdown
+seperate strategies from stregy, add strategies location to config
 
 ## future
 posmerge

@@ -1,15 +1,16 @@
 package acchistory
 
 import (
+	"stregy/pkg/timeseries"
 	"time"
 )
 
 type Balance struct {
-	TimeSeries TimeSeries
+	TimeSeries timeseries.TimeSeries
 }
 
 func (b *Balance) Update(balance float64, t time.Time) {
-	(*(b)).TimeSeries = append(b.TimeSeries, TSValue{t, balance})
+	(*(b)).TimeSeries = append(b.TimeSeries, timeseries.Value{t, balance})
 }
 
 func (b Balance) GetLast() float64 {

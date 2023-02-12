@@ -1,15 +1,14 @@
-package acchistory
+package timeseries
 
 import (
 	"fmt"
 	"os"
-	"stregy/pkg/utils"
 	"time"
 )
 
-type TimeSeries []TSValue
+type TimeSeries []Value
 
-type TSValue struct {
+type Value struct {
 	Time  time.Time
 	Value float64
 }
@@ -22,7 +21,7 @@ func (t TimeSeries) Save(path string) error {
 	defer f.Close()
 
 	for _, v := range t {
-		f.WriteString(fmt.Sprintf("%v,%v\n", utils.FormatTime(v.Time), v.Value))
+		f.WriteString(fmt.Sprintf("%v,%v\n", v.Time.Format("2006-01-02 15:04"), v.Value))
 	}
 
 	return nil

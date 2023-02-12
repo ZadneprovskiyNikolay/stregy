@@ -16,7 +16,7 @@ func NewRepository(client *gorm.DB) backtest.Repository {
 	return &repository{db: client}
 }
 
-func (r *repository) Create(backtest btcore.Backtest) (*btcore.Backtest, error) {
+func (r *repository) Create(backtest *btcore.Backtest) (*btcore.Backtest, error) {
 	se := &StrategyExecution{
 		StrategyName: backtest.StrategyName,
 		TimeframeSec: backtest.TimeframeSec,
@@ -25,13 +25,28 @@ func (r *repository) Create(backtest btcore.Backtest) (*btcore.Backtest, error) 
 		EndTime:      backtest.EndTime,
 		Status:       StrategyExecutionStatus(backtest.Status),
 	}
-	result := r.db.Create(se)
-	if result.Error != nil {
+	if result := r.db.Create(se); result.Error != nil {
 		return nil, result.Error
 	}
 
 	backtest.ID = se.StrategyExecutionId.String()
-	return &backtest, nil
+	return backtest, nil
+}
+
+func (r *repository) Save(backtest *btcore.Backtest) (*btcore.Backtest, error) {
+	se := &StrategyExecution{
+		StrategyName: backtest.StrategyName,
+		TimeframeSec: backtest.TimeframeSec,
+		SymbolName:   backtest.Symbol.Name,
+		StartTime:    backtest.StartTime,
+		EndTime:      backtest.EndTime,
+		Status:       StrategyExecutionStatus(backtest.Status),
+	}
+	if result := r.db.Save(se); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return backtest, nil
 }
 
 func (r *repository) Get(id string) (*StrategyExecution, error) {

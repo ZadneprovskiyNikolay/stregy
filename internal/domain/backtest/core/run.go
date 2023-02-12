@@ -54,12 +54,19 @@ func (b *Backtest) initLogger() {
 }
 
 func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerator) {
+	defer func() {
+		if b.Status == Running {
+			b.Status = Crashed
+		}
+	}()
+
 	run := true
 	for run {
 		select {
 		case q, ok := <-quotes:
 			if !ok {
 				run = false
+				b.Status = Finished
 				break
 			}
 
@@ -98,6 +105,7 @@ func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerat
 
 		case <-b.termChan:
 			run = false
+			b.Status = Terminated
 		}
 	}
 }
