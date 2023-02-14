@@ -18,6 +18,7 @@ import (
 	"stregy/pkg/draw"
 	"stregy/pkg/logging"
 	"stregy/pkg/utils"
+	"time"
 )
 
 type Service interface {
@@ -128,9 +129,12 @@ func (s *service) Run() (err error) {
 	var strat strategy1.Strategy = strategy.NewStrategy(backtest)
 
 	// backtest
+	startTime := time.Now()
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
 	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime, backtest.TimeframeSec)
 	backtest.BacktestOnQuotes(strat, quotes, firstQuote, balance)
+	timeElapsed := time.Since(startTime)
+	serviceLogger.Info(fmt.Sprintf("Time elapsed: %v", timeElapsed))
 
 	// update status
 	s.repository.Save(backtest)

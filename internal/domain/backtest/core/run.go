@@ -45,7 +45,7 @@ func (b *Backtest) init(s strategy1.Strategy, q quote.Quote, balance float64) {
 	b.positions = make(map[int64]*order.Position)
 	b.termChan = make(chan bool)
 	b.Balance.Update(balance, b.time)
-	b.Drawdown.Init(b.time, time.Minute*5, b)
+	b.Drawdown.Init(b.time, time.Minute*0, b)
 }
 
 func (b *Backtest) initLogger() {

@@ -1,50 +1,92 @@
 package quote
 
 import (
+	"database/sql"
 	"fmt"
-	"sort"
 	"stregy/internal/domain/quote"
 	"stregy/pkg/utils"
 	"strings"
 	"time"
-	"unsafe"
+
+	_ "github.com/lib/pq"
 
 	"gorm.io/gorm"
 )
 
 type repository struct {
-	db *gorm.DB
+	db     *sql.DB
+	dbGorm *gorm.DB
 }
 
 func NewRepository(client *gorm.DB) quote.Repository {
-	return &repository{db: client}
+	connStr := "user=postgres dbname=postgres sslmode=disable"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+
+	return &repository{db: db, dbGorm: client}
 }
 
-func (r repository) Get(symbol string, startTime, endTime time.Time, limit, timeframeSec int) ([]quote.Quote, error) {
+func (r repository) Get(
+	dest []quote.Quote,
+	symbol string,
+	startTime, endTime time.Time,
+	limit, timeframeSec int,
+) ([]quote.Quote, error) {
+
 	tableName := getTableName(symbol, timeframeSec)
 	startTimeStr := utils.FormatTime(startTime)
-	endTimeStr := utils.FormatTime(endTime)
 
-	quotes := make([]Quote, 0)
-	err := r.db.Table(tableName).Where("time >= ? AND time <= ? ORDER BY time LIMIT ?", startTimeStr, endTimeStr, limit).Find(&quotes).Error
-	if err != nil {
-		return nil, err
+	rows, _ := r.db.Query(fmt.Sprintf("SELECT * FROM \"%s\" WHERE time >= '%s' ORDER BY time LIMIT %d", tableName, startTimeStr, limit))
+	defer rows.Close()
+
+	for rows.Next() {
+		var t time.Time
+		var o, h, l, c float64
+		var v int32
+		rows.Scan(&t, &o, &h, &l, &c, &v)
+		if t.After(endTime) {
+			break
+		}
+		dest = append(dest, quote.Quote{Time: t, Open: o, High: h, Low: l, Close: c, Volume: v})
 	}
 
-	res := *(*[]quote.Quote)(unsafe.Pointer(&quotes))
-	if res[len(res)-1].Time.After(endTime) {
-		i := sort.Search(len(res), func(i int) bool {
-			return res[i].Time.After(endTime)
-		})
-		res = res[:i]
-	}
+	return dest, nil
+}
 
-	return res, nil
+// GetAndPushToChan implements quote.Repository
+func (r *repository) GetAndPushToChan(
+	dest chan<- quote.Quote,
+	symbol string,
+	startTime time.Time,
+	endTime time.Time,
+	limit int,
+	timeframeSec int,
+) (err error, lastQuoteTime time.Time) {
+	tableName := getTableName(symbol, timeframeSec)
+	startTimeStr := utils.FormatTime(startTime)
+
+	rows, _ := r.db.Query(fmt.Sprintf("SELECT * FROM \"%s\" WHERE time >= '%s' ORDER BY time LIMIT %d", tableName, startTimeStr, limit))
+	defer rows.Close()
+
+	for rows.Next() {
+		var t time.Time
+		var o, h, l, c float64
+		var v int32
+		rows.Scan(&t, &o, &h, &l, &c, &v)
+		if t.After(endTime) {
+			break
+		}
+		lastQuoteTime = t
+		dest <- quote.Quote{Time: t, Open: o, High: h, Low: l, Close: c, Volume: v}
+	}
+	return nil, lastQuoteTime
 }
 
 func (r repository) Load(symbol, filePath, delimiter string, timeframeSec int) error {
 	tableName := getTableName(symbol, timeframeSec)
-	return r.db.Exec(fmt.Sprintf(`
+	return r.dbGorm.Exec(fmt.Sprintf(`
 	CREATE UNLOGGED TABLE IF NOT EXISTS temp_quotes (
 		time double precision,
 		open double precision,
@@ -53,17 +95,17 @@ func (r repository) Load(symbol, filePath, delimiter string, timeframeSec int) e
 		close double precision,
 		volume int
 	 );
-	 
+
 	COPY temp_quotes FROM '%v' DELIMITERS '%v' CSV;
-	
+
 	ALTER TABLE temp_quotes
 	ALTER time TYPE timestamp without time zone
 		USING (to_timestamp(time) AT TIME ZONE 'UTC');
-	
+
 	CREATE TABLE IF NOT EXISTS %v (LIKE quotes INCLUDING ALL);
 
 	INSERT INTO %v SELECT * FROM temp_quotes ON CONFLICT DO NOTHING;
-	 
+
 	DROP TABLE temp_quotes;`,
 		filePath, delimiter, tableName, tableName)).Error
 }

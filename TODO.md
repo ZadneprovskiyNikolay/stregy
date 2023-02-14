@@ -1,4 +1,7 @@
 ## today
+preformance
+server backtest request not launching backtest
+drawdown not shown
 seperate strategies from stregy, add strategies location to config
 
 ## future

@@ -32,25 +32,40 @@ func quoteGenerator(ch chan<- Quote, s *service, symbol string, start, end time.
 		return err
 	}
 
+	var quotes []Quote
+	if timeframeSec != 0 {
+		quotes = make([]Quote, 0, 262144)
+	}
+
 	for batchStart.Before(end) {
-		quotes, err := s.repository.Get(symbol, batchStart, end, s.queryRowsLimit, timeframeSec)
-		if err != nil {
-			return err
-		}
-		if len(quotes) == 0 {
-			break
+		if timeframeSec == 0 {
+			err, lastQuoteTime := s.repository.GetAndPushToChan(ch, symbol, batchStart, end, s.queryRowsLimit, timeframeSec)
+			if err != nil {
+				return err
+			}
+
+			batchStart = lastQuoteTime.Add(time.Millisecond * 1)
+		} else {
+			quotes, err := s.repository.Get(quotes, symbol, batchStart, end, s.queryRowsLimit, timeframeSec)
+			if err != nil {
+				return err
+			}
+			if len(quotes) == 0 {
+				break
+			}
+
+			quotesAgg, err := AggregateQuotes(quotes, timeframeSec)
+			if err != nil {
+				panic(fmt.Sprintf("error aggregating quotes: %v\n", err))
+			}
+
+			for _, quote := range quotesAgg {
+				ch <- quote
+			}
+
+			batchStart = quotes[len(quotes)-1].Time.Add(time.Millisecond * 1)
 		}
 
-		quotesAgg, err := AggregateQuotes(quotes, timeframeSec)
-		if err != nil {
-			panic(fmt.Sprintf("error aggregating quotes: %v\n", err))
-		}
-
-		for _, quote := range quotesAgg {
-			ch <- quote
-		}
-
-		batchStart = quotes[len(quotes)-1].Time.Add(time.Millisecond * 1)
 	}
 	close(ch)
 
@@ -62,7 +77,7 @@ func (s *service) Load(symbol, filePath, delimiter string, timeframeSec int) err
 }
 
 func (s *service) firstQuote(symbol string, start, end time.Time, timeframeSec int) Quote {
-	quotes, _ := s.repository.Get(symbol, start, end, 1, timeframeSec)
+	quotes, _ := s.repository.Get(make([]Quote, 0, 1), symbol, start, end, 1, timeframeSec)
 	if len(quotes) == 0 {
 		return Quote{}
 	}
