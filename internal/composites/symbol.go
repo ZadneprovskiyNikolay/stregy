@@ -9,8 +9,8 @@ type SymbolComposite struct {
 	Service symbol.Service
 }
 
-func NewSymbolComposite(composite *PGormComposite) (*SymbolComposite, error) {
-	repository := symbol1.NewRepository(composite.db)
+func NewSymbolComposite(composite *PostgresComposite) (*SymbolComposite, error) {
+	repository := symbol1.NewRepository(composite.dbGORM)
 
 	return &SymbolComposite{
 		Service: symbol.NewService(repository),

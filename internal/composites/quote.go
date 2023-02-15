@@ -10,8 +10,8 @@ type QuoteComposite struct {
 	Service    quote.Service
 }
 
-func NewQuoteComposite(composite *PGormComposite) (*QuoteComposite, error) {
-	repository := quote1.NewRepository(composite.db)
+func NewQuoteComposite(composite *PostgresComposite) (*QuoteComposite, error) {
+	repository := quote1.NewRepository(composite.dbGORM, composite.dbPQ)
 	service := quote.NewService(repository)
 
 	return &QuoteComposite{

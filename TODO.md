@@ -1,8 +1,6 @@
 ## today
-preformance
-server backtest request not launching backtest
-drawdown not shown
 seperate strategies from stregy, add strategies location to config
+dont draw drawdown
 
 ## future
 posmerge
@@ -10,8 +8,6 @@ posmerge
 send logging config when creating backtest
 implement multiple backtests in one run
 test quotes generator
-add ability to add sl tp after submitting order
-delete submitted status in order?
 use int64 instead of float64 for price?
 Partial position?
 Transaction approach in all financial operations

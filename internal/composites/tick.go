@@ -10,8 +10,8 @@ type TickComposite struct {
 	Service    tick.Service
 }
 
-func NewTickComposite(composite *PGormComposite) (*TickComposite, error) {
-	repository := tick1.NewRepository(composite.db)
+func NewTickComposite(composite *PostgresComposite) (*TickComposite, error) {
+	repository := tick1.NewRepository(composite.dbGORM)
 	service := tick.NewService(repository)
 
 	return &TickComposite{

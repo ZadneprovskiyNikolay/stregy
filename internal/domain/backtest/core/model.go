@@ -25,7 +25,6 @@ type Backtest struct {
 	StartTime    time.Time
 	EndTime      time.Time
 	Symbol       symbol.Symbol
-	TimeframeSec int
 	Status       StrategyExecutionStatus
 
 	strategy strategy.Strategy

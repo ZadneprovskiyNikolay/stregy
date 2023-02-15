@@ -23,7 +23,7 @@ func NewLogger() logger.Interface {
 	)
 }
 
-func NewClient(username, password, host, port, database string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("postgres://%v:%v@%v:%v/%v", host, port, username, password, database)
+func NewGormClient(host, port, username, password, database string) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("postgres://%v:%v@%v:%v/%v", username, password, host, port, database)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{SkipDefaultTransaction: true})
 }

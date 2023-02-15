@@ -23,12 +23,15 @@ func (b *Backtest) BacktestOnQuotes(
 ) error {
 	b.init(s, firstQuote, balance)
 
-	quoteGen, err := NewQuoteGenerator(s, b.TimeframeSec, firstQuote)
+	quoteGen, err := NewQuoteGenerator(s, firstQuote)
 	if err != nil {
 		return err
 	}
-	b.Printf("running backtest with strategy strat1 on period period [%s; %s]", b.StartTime.Format("2006-01-02 15:04:05"), b.EndTime.Format("2006-01-02 15:04:05"))
 
+	b.Printf(
+		"running backtest with strategy strat1 on period period [%s; %s]",
+		b.StartTime.Format("2006-01-02 15:04:05"),
+		b.EndTime.Format("2006-01-02 15:04:05"))
 	b.runOnQuotes(quotes, quoteGen)
 
 	return nil

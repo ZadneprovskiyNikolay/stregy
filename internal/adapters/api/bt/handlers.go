@@ -62,7 +62,6 @@ func (h *handler) backtestHandler(
 	domainDTO := backtest.BacktestDTO{
 		StrategyName: apiDTO.StrategyName,
 		SymbolName:   apiDTO.Symbol,
-		TimeframeSec: apiDTO.TimeframeSec,
 		StartDate:    startDate,
 		EndDate:      endDate,
 	}

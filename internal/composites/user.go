@@ -13,8 +13,8 @@ type UserComposite struct {
 	Handler    api.Handler
 }
 
-func NewUserComposite(composite *PGormComposite) (*UserComposite, error) {
-	repository := user2.NewRepository(composite.db)
+func NewUserComposite(composite *PostgresComposite) (*UserComposite, error) {
+	repository := user2.NewRepository(composite.dbGORM)
 	service := user.NewService(repository)
 	handler := user1.NewHandler(service)
 	return &UserComposite{

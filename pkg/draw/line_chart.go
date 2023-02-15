@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/go-echarts/go-echarts/v2/types"
 )
 
 type LineChartPlotter struct {
@@ -65,9 +64,9 @@ func (l *LineChartPlotter) draw(w http.ResponseWriter, _ *http.Request) {
 		line.SetGlobalOptions(
 			charts.WithInitializationOpts(opts.Initialization{
 				PageTitle: l.PageName,
-				Width:     "1400px",
-				Height:    "600px",
-				Theme:     types.ThemeWesteros}),
+				Width:     "1920px",
+				Height:    "950px",
+				Theme:     "dark"}),
 			charts.WithTitleOpts(opts.Title{
 				Title: chart.Name,
 			}))

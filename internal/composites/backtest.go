@@ -18,14 +18,14 @@ type BacktestComposite struct {
 }
 
 func NewBacktestComposite(
-	pgormComposite *PGormComposite,
+	pgormComposite *PostgresComposite,
 	exgAccService exgaccount.Service,
 	userService user.Service,
 	tickService tick.Service,
 	quoteService quote.Service,
 	symbolService symbol.Service,
 ) (*BacktestComposite, error) {
-	repository := stratexec.NewRepository(pgormComposite.db)
+	repository := stratexec.NewRepository(pgormComposite.dbGORM)
 	service := backtest.NewService(
 		repository,
 		tickService,

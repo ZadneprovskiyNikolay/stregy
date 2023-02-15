@@ -19,7 +19,6 @@ func NewRepository(client *gorm.DB) backtest.Repository {
 func (r *repository) Create(backtest *btcore.Backtest) (*btcore.Backtest, error) {
 	se := &StrategyExecution{
 		StrategyName: backtest.StrategyName,
-		TimeframeSec: backtest.TimeframeSec,
 		SymbolName:   backtest.Symbol.Name,
 		StartTime:    backtest.StartTime,
 		EndTime:      backtest.EndTime,
@@ -36,7 +35,6 @@ func (r *repository) Create(backtest *btcore.Backtest) (*btcore.Backtest, error)
 func (r *repository) Save(backtest *btcore.Backtest) (*btcore.Backtest, error) {
 	se := &StrategyExecution{
 		StrategyName: backtest.StrategyName,
-		TimeframeSec: backtest.TimeframeSec,
 		SymbolName:   backtest.Symbol.Name,
 		StartTime:    backtest.StartTime,
 		EndTime:      backtest.EndTime,

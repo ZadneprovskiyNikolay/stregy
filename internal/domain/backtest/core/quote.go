@@ -1,8 +1,6 @@
 package core
 
 import (
-	"fmt"
-	"math"
 	"stregy/internal/domain/quote"
 	"time"
 )
@@ -28,18 +26,13 @@ type callbackObject interface {
 	QuoteTimeframesNeeded() []int
 }
 
-func NewQuoteGenerator(cb callbackObject, primaryTimeframeSec int, firstQuote quote.Quote) (*QuoteGenerator, error) {
-	primaryTimeframe := int(math.Ceil(float64(primaryTimeframeSec) / 60))
+func NewQuoteGenerator(cb callbackObject, firstQuote quote.Quote) (*QuoteGenerator, error) {
 	timeframes := cb.QuoteTimeframesNeeded()
 
 	feeds := make([]*quoteFeed, 0, len(timeframes))
 	for _, timeframe := range timeframes {
 		if err := quote.CheckIsValidTimeframe(timeframe); err != nil {
 			return nil, err
-		}
-
-		if timeframe < primaryTimeframe {
-			return nil, fmt.Errorf("requested timeframe < primary timeframe")
 		}
 
 		timeframeDuration := time.Duration(timeframe) * time.Minute

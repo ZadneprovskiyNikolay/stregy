@@ -20,7 +20,7 @@ scenarios:
 			tp order - nothing(report in OnMergedPositionOrder)
 */
 func (s *strat1) OnOrder(o order.Order) {
-	s.broker.Printf("OnOrder: %v", o)
+	// s.broker.Printf("OnOrder: %v", o)
 
 	s.positionMerger.OnOrder(o)
 

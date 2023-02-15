@@ -26,7 +26,6 @@ type StrategyExecution struct {
 	StrategyName        string    `gorm:"type:varchar(100);not null"`
 	ExchangeAccount     exgaccount.ExchangeAccount
 	ExchangeAccountID   *uuid.UUID
-	TimeframeSec        int                     `gorm:"type:int;not null;check:timeframe_sec > 0"`
 	SymbolName          string                  `gorm:"not null"`
 	StartTime           time.Time               `gorm:"type:timestamp;not null"`
 	EndTime             time.Time               `gorm:"type:timestamp"`
@@ -40,7 +39,6 @@ func (s *StrategyExecution) ToBacktest() *btcore.Backtest {
 		StartTime:    s.StartTime,
 		EndTime:      s.EndTime,
 		Symbol:       symbol.Symbol{Name: s.SymbolName},
-		TimeframeSec: s.TimeframeSec,
 		Status:       btcore.StrategyExecutionStatus(string(s.Status)),
 	}
 }

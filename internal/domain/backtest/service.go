@@ -57,7 +57,6 @@ func (s *service) Create(dto BacktestDTO) (*btcore.Backtest, error) {
 		StartTime:    dto.StartDate,
 		EndTime:      dto.EndDate,
 		Symbol:       symbol.Symbol{Name: dto.SymbolName},
-		TimeframeSec: dto.TimeframeSec,
 		Status:       btcore.Created,
 	}
 	return s.repository.Create(&bt)
@@ -131,7 +130,7 @@ func (s *service) Run() (err error) {
 	// backtest
 	startTime := time.Now()
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
-	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime, backtest.TimeframeSec)
+	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime)
 	backtest.BacktestOnQuotes(strat, quotes, firstQuote, balance)
 	timeElapsed := time.Since(startTime)
 	serviceLogger.Info(fmt.Sprintf("Time elapsed: %v", timeElapsed))
@@ -154,19 +153,19 @@ func (s *service) getSymbol(name string) *symbol.Symbol {
 }
 
 func parseArgs() (backtestID string, balance float64, reportLocation string, err error) {
-	if len(os.Args) < 2 {
+	if len(os.Args) < 3 {
 		return "", 0, "", errors.New("backtest id not provided")
 	}
 	backtestID = os.Args[2]
 
-	if len(os.Args) >= 3 {
+	if len(os.Args) >= 4 {
 		balance, _ = strconv.ParseFloat(os.Args[3], 64)
 		if err != nil {
 			return "", 0, "", fmt.Errorf("error parsing balance: %s", err.Error())
 		}
 	}
 
-	if len(os.Args) >= 4 {
+	if len(os.Args) >= 5 {
 		reportLocation = os.Args[4]
 	}
 
@@ -192,14 +191,8 @@ func (s *service) createReport(backtest *btcore.Backtest, location string) {
 		logger.Error(fmt.Sprintf("Error during saving balance history: %v", err))
 	}
 
-	drawdownPath := path.Join(location, "drawdown.csv")
-	if err := backtest.Drawdown.Save(drawdownPath); err != nil {
-		logger.Error(fmt.Sprintf("Error during saving max drawdown history: %v", err))
-	}
-
 	balanceChart := draw.FromTimeSeries("balance", backtest.Balance.TimeSeries)
-	drawdownChart := draw.FromTimeSeries("drawdown", backtest.Drawdown.TimeSeries)
-	draw.DrawLineCharts("history", balanceChart, drawdownChart)
+	draw.DrawLineCharts("history", balanceChart)
 }
 
 func (s *service) getDefaultReportLocation(backtestID string) string {

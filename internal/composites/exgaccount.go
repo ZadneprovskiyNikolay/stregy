@@ -14,8 +14,8 @@ type ExchangeAccountComposite struct {
 	Handler    api.Handler
 }
 
-func NewExchangeAccountComposite(composite *PGormComposite, userService user.Service) (*ExchangeAccountComposite, error) {
-	repository := exgaccount2.NewRepository(composite.db)
+func NewExchangeAccountComposite(composite *PostgresComposite, userService user.Service) (*ExchangeAccountComposite, error) {
+	repository := exgaccount2.NewRepository(composite.dbGORM)
 	service := exgaccount.NewService(repository)
 	handler := exgaccount1.NewHandler(service, userService)
 	return &ExchangeAccountComposite{
