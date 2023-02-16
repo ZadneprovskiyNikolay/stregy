@@ -28,8 +28,9 @@ func (b *Backtest) BacktestOnQuotes(
 		return err
 	}
 
-	b.Printf(
-		"running backtest with strategy strat1 on period period [%s; %s]",
+	b.PrintfWithoutPrefix(
+		"Backtest %s on [%s; %s]",
+		b.strategy.Name(),
 		b.StartTime.Format("2006-01-02 15:04:05"),
 		b.EndTime.Format("2006-01-02 15:04:05"))
 	b.runOnQuotes(quotes, quoteGen)
@@ -111,6 +112,8 @@ func (b *Backtest) runOnQuotes(quotes <-chan quote.Quote, quoteGen *QuoteGenerat
 			b.Status = Terminated
 		}
 	}
+
+	b.WriteReportToLog()
 }
 
 func (b *Backtest) Terminate() {

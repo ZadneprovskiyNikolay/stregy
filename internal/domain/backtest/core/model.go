@@ -2,6 +2,7 @@ package core
 
 import (
 	"stregy/internal/domain/acchistory"
+	"stregy/internal/domain/backtest/commission"
 	"stregy/internal/domain/broker"
 	"stregy/internal/domain/order"
 	"stregy/internal/domain/strategy"
@@ -27,14 +28,18 @@ type Backtest struct {
 	Symbol       symbol.Symbol
 	Status       StrategyExecutionStatus
 
-	strategy strategy.Strategy
+	strategy   strategy.Strategy
+	Commission commission.CommissionModel
 
 	time  time.Time
 	price float64
 
-	OrderHistory []*order.Order
-	Balance      acchistory.Balance
-	Drawdown     acchistory.Drawdown
+	OrderHistory        []*order.Order
+	Balance             acchistory.Balance
+	Drawdown            acchistory.Drawdown
+	TotalCommission     float64
+	TotalVolumeTraded   float64
+	TotalOrdersExecuted int
 
 	orders        map[int64]*order.Order
 	positions     map[int64]*order.Position

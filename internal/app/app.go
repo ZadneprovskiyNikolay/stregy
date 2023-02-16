@@ -5,42 +5,17 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"stregy/internal/composites"
 	"stregy/internal/config"
+	"stregy/internal/domain/backtest"
 	"stregy/pkg/logging"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-type AppMode int
-
-const (
-	Server AppMode = iota
-	Backtest
-)
-
-var appMode AppMode
-
-func SetAppMode() {
-	if len(os.Args) < 2 {
-		appMode = Server
-		return
-	}
-
-	switch os.Args[1] {
-	case "--backtest":
-		appMode = Backtest
-	default:
-		panic(fmt.Errorf("unknown app mode: %s", os.Args[1]))
-	}
-}
-
 func Run(cfg *config.Config) {
 	logger := logging.GetLogger()
-
-	SetAppMode()
 
 	pgormComposite, err := composites.NewPGormComposite(cfg.PosgreSQL.Host, cfg.PosgreSQL.Port, cfg.PosgreSQL.Username, cfg.PosgreSQL.Password, cfg.PosgreSQL.Database)
 	if err != nil {
@@ -90,18 +65,13 @@ func Run(cfg *config.Config) {
 		logger.Fatal("backtest composite failed")
 	}
 
-	switch appMode {
-	case Server:
+	if *backtest.BacktestID == "" {
 		StartServer(userComposite, strategyComposite, exgAccountComposite, backtestComposite)
-	case Backtest:
+	} else {
 		err = backtestComposite.Service.Run()
 		if err != nil {
 			logger.Fatal(err.Error())
 		}
-	}
-
-	if err != nil {
-		os.Exit(1)
 	}
 }
 

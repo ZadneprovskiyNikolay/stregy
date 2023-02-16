@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"stregy/internal/app"
 	"stregy/internal/config"
 	"stregy/pkg/logging"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
 	logging.Init(logrus.DebugLevel)
 
 	cfg := config.GetConfig()

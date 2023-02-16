@@ -2,7 +2,6 @@ package strategy
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"stregy/internal/adapters/api"
 	user1 "stregy/internal/adapters/api/user"
@@ -39,7 +38,7 @@ func (h *handler) CreateStrategy(w http.ResponseWriter, r *http.Request, params 
 
 	err := r.ParseMultipartForm(1024 * 1024 * 1024)
 	if err != nil {
-		fmt.Printf("Error parsing form: %v\n", err)
+		logger.Errorf("Error parsing form: %v\n", err)
 	}
 
 	dto := strategy1.CreateStrategyDTO{}
@@ -51,7 +50,6 @@ func (h *handler) CreateStrategy(w http.ResponseWriter, r *http.Request, params 
 	if dto.Name == "" {
 		babbler := babble.NewBabbler()
 		dto.Name = babbler.Babble()
-		fmt.Println(dto.Name)
 	}
 
 	dto.Implementation = &(r.PostForm["file"][0])

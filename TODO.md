@@ -1,4 +1,7 @@
 ## today
+add comissions
+    is commission taken only from main orders?
+make cmd args better
 seperate strategies from stregy, add strategies location to config
 dont draw drawdown
 

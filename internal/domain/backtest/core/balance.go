@@ -14,6 +14,10 @@ func (b *Backtest) updateBalance(o *order.Order) {
 	}
 
 	balance := b.Balance.GetLast()
+	commission := b.Commission.GetCommission(o)
+	balance -= commission
+	b.TotalCommission += commission
+
 	p := o.Position
 	if p.MainOrder.Diraction == order.Long {
 		balance += o.ExecutionPrice - p.MainOrder.ExecutionPrice

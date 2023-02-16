@@ -12,9 +12,10 @@ import (
 )
 
 type Logger struct {
+	Config LoggingConfig
 	file   *os.File
-	config LoggingConfig
-	clock  Clock
+
+	clock Clock
 }
 
 type Clock interface {
@@ -24,6 +25,7 @@ type Clock interface {
 type LoggingConfig struct {
 	LogOrderStatusChange bool
 	PricePrecision       int
+	OmmitTimePrefix      bool
 }
 
 func NewLogger(logName string, cfg LoggingConfig, clock Clock) *Logger {
@@ -36,11 +38,13 @@ func NewLogger(logName string, cfg LoggingConfig, clock Clock) *Logger {
 		panic(fmt.Errorf("could not create log file: %s", err.Error()))
 	}
 
-	return &Logger{file: f, config: cfg, clock: clock}
+	return &Logger{file: f, Config: cfg, clock: clock}
 }
 
 func (l *Logger) Print(s string) {
-	s = l.timePrefix() + s
+	if !l.Config.OmmitTimePrefix {
+		s = l.timePrefix() + s
+	}
 	fmt.Println(s)
 	l.file.WriteString(s + "\n")
 }
@@ -61,17 +65,17 @@ func (l *Logger) Printf(format string, v ...interface{}) {
 }
 
 func (l *Logger) LogOrderStatusChange(o *order.Order) {
-	if l.config.LogOrderStatusChange {
+	if l.Config.LogOrderStatusChange {
 		l.PrintOrderStatus(o)
 	}
 }
 
 func (l *Logger) FormatOrder(o *order.Order) string {
-	executionPrice := strconv.FormatFloat(o.ExecutionPrice, 'f', l.config.PricePrecision, 64)
+	executionPrice := strconv.FormatFloat(o.ExecutionPrice, 'f', l.Config.PricePrecision, 64)
 	if o.Status != order.FilledOrder {
 		executionPrice = ""
 	}
-	price := strconv.FormatFloat(o.Price, 'f', l.config.PricePrecision, 64)
+	price := strconv.FormatFloat(o.Price, 'f', l.Config.PricePrecision, 64)
 	if o.Price == 0 {
 		price = strings.Repeat(" ", len(executionPrice))
 	}

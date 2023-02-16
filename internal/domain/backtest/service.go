@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"stregy/internal/domain/acchistory"
+	"stregy/internal/domain/backtest/commission"
 	btcore "stregy/internal/domain/backtest/core"
 	"stregy/internal/domain/exgaccount"
 	"stregy/internal/domain/quote"
@@ -112,17 +112,21 @@ func (s *service) Run() (err error) {
 		}
 	}()
 
-	backtestID, balance, reportLocation, err := parseArgs()
 	if err != nil {
 		return err
 	}
 
-	backtest, err := s.repository.GetBacktest(backtestID)
+	backtest, err := s.repository.GetBacktest(*BacktestID)
 	if err != nil {
 		return err
 	}
 	backtest.Symbol = *s.getSymbol(backtest.Symbol.Name)
 	backtest.Status = btcore.Running
+	commission, err := GetCommissionModel()
+	if err != nil {
+		return err
+	}
+	backtest.Commission = commission
 	s.repository.Save(backtest)
 
 	var strat strategy1.Strategy = strategy.NewStrategy(backtest)
@@ -131,14 +135,14 @@ func (s *service) Run() (err error) {
 	startTime := time.Now()
 	serviceLogger.Info(fmt.Sprintf("running backtest with strategy %v on period [%s; %s]", strat.Name(), backtest.StartTime.Format("2006-01-02 15:04:05"), backtest.EndTime.Format("2006-01-02 15:04:05")))
 	quotes, firstQuote := s.quoteService.Get(backtest.Symbol.Name, backtest.StartTime, backtest.EndTime)
-	backtest.BacktestOnQuotes(strat, quotes, firstQuote, balance)
+	backtest.BacktestOnQuotes(strat, quotes, firstQuote, *Balance)
 	timeElapsed := time.Since(startTime)
 	serviceLogger.Info(fmt.Sprintf("Time elapsed: %v", timeElapsed))
 
 	// update status
 	s.repository.Save(backtest)
 
-	s.createReport(backtest, reportLocation)
+	s.createReport(backtest, *ReportLocation)
 
 	return err
 }
@@ -150,26 +154,6 @@ func (s *service) getSymbol(name string) *symbol.Symbol {
 	}
 
 	return smbl
-}
-
-func parseArgs() (backtestID string, balance float64, reportLocation string, err error) {
-	if len(os.Args) < 3 {
-		return "", 0, "", errors.New("backtest id not provided")
-	}
-	backtestID = os.Args[2]
-
-	if len(os.Args) >= 4 {
-		balance, _ = strconv.ParseFloat(os.Args[3], 64)
-		if err != nil {
-			return "", 0, "", fmt.Errorf("error parsing balance: %s", err.Error())
-		}
-	}
-
-	if len(os.Args) >= 5 {
-		reportLocation = os.Args[4]
-	}
-
-	return backtestID, balance, reportLocation, nil
 }
 
 func (s *service) createReport(backtest *btcore.Backtest, location string) {
@@ -199,4 +183,13 @@ func (s *service) getDefaultReportLocation(backtestID string) string {
 	wd, _ := os.Getwd()
 	reportDir := path.Join(wd, "reports", backtestID)
 	return reportDir
+}
+
+func GetCommissionModel() (commission.CommissionModel, error) {
+	switch *CommissionType {
+	case "binance":
+		return commission.NewBinanceCommissionModel()
+	default:
+		return commission.NewBinanceCommissionModel()
+	}
 }

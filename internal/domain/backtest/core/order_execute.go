@@ -29,6 +29,8 @@ func (b *Backtest) executeOrder(o *order.Order, price float64) {
 	}
 
 	b.updateBalance(o)
+	b.TotalVolumeTraded += o.ExecutionPrice * o.Size
+	b.TotalOrdersExecuted += 1
 }
 
 func (b *Backtest) activateContingentOrders(o *order.Order) {
